@@ -23,10 +23,10 @@ function updateUserList() {
 function drawMessage(message) {
     let position = 'left';
     const date = new Date(message.timestamp);
-    if (message.user === currentUser) position = 'right';
+    if (message.sender === currentUser) position = 'right';
     const messageItem = `
             <li class="message ${position}">
-                <div class="avatar">${message.user}</div>
+                <div class="avatar">${message.sender}</div>
                     <div class="text_wrapper">
                         <div class="text">${message.body}<br>
                             <span class="small">${date}</span>
@@ -50,8 +50,8 @@ function getConversation(recipient) {
 function getMessageById(message) {
     id = JSON.parse(message).message
     $.getJSON(`/api/v1/message/${id}/`, function (data) {
-        if (data.user === currentRecipient ||
-            (data.recipient === currentRecipient && data.user == currentUser)) {
+        if (data.sender === currentRecipient ||
+            (data.recipient === currentRecipient && data.sender == currentUser)) {
             drawMessage(data);
         }
         messageList.animate({scrollTop: messageList.prop('scrollHeight')});

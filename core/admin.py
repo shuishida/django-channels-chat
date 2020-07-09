@@ -1,14 +1,14 @@
 from django.contrib.admin import ModelAdmin, site
-from core.models import MessageModel
+from core.models import Message
 
 
-class MessageModelAdmin(ModelAdmin):
+class MessageAdmin(ModelAdmin):
     readonly_fields = ('timestamp',)
-    search_fields = ('id', 'body', 'user__username', 'recipient__username')
-    list_display = ('id', 'user', 'recipient', 'timestamp', 'characters')
+    search_fields = ('id', 'body', 'sender__username', 'recipient__username')
+    list_display = ('id', 'sender', 'recipient', 'timestamp', 'characters')
     list_display_links = ('id',)
-    list_filter = ('user', 'recipient')
+    list_filter = ('sender', 'recipient')
     date_hierarchy = 'timestamp'
 
 
-site.register(MessageModel, MessageModelAdmin)
+site.register(Message, MessageAdmin)

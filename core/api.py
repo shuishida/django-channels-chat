@@ -7,8 +7,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.authentication import SessionAuthentication
 
 from chat import settings
-from core.serializers import MessageModelSerializer, UserModelSerializer
-from core.models import MessageModel
+from core.serializers import MessageSerializer, UserSerializer
+from core.models import Message
 
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
@@ -30,26 +30,26 @@ class MessagePagination(PageNumberPagination):
 
 
 class MessageModelViewSet(ModelViewSet):
-    queryset = MessageModel.objects.all()
-    serializer_class = MessageModelSerializer
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
     allowed_methods = ('GET', 'POST', 'HEAD', 'OPTIONS')
     authentication_classes = (CsrfExemptSessionAuthentication,)
     pagination_class = MessagePagination
 
     def list(self, request, *args, **kwargs):
         self.queryset = self.queryset.filter(Q(recipient=request.user) |
-                                             Q(user=request.user))
+                                             Q(sender=request.user))
         target = self.request.query_params.get('target', None)
         if target is not None:
             self.queryset = self.queryset.filter(
-                Q(recipient=request.user, user__username=target) |
-                Q(recipient__username=target, user=request.user))
+                Q(recipient=request.user, sender__username=target) |
+                Q(recipient__username=target, sender=request.user))
         return super(MessageModelViewSet, self).list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
         msg = get_object_or_404(
             self.queryset.filter(Q(recipient=request.user) |
-                                 Q(user=request.user),
+                                 Q(sender=request.user),
                                  Q(pk=kwargs['pk'])))
         serializer = self.get_serializer(msg)
         return Response(serializer.data)
@@ -57,7 +57,7 @@ class MessageModelViewSet(ModelViewSet):
 
 class UserModelViewSet(ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserModelSerializer
+    serializer_class = UserSerializer
     allowed_methods = ('GET', 'HEAD', 'OPTIONS')
     pagination_class = None  # Get all user
 
