@@ -37,7 +37,7 @@ function drawMessage(message) {
 }
 
 function getConversation(recipient) {
-    $.getJSON(`/api/v1/message/?target=${recipient}`, function (data) {
+    $.getJSON(`/api/v1/message/${recipient}/`, function (data) {
         messageList.children('.message').remove();
         for (let i = data['results'].length - 1; i >= 0; i--) {
             drawMessage(data['results'][i]);
@@ -49,17 +49,14 @@ function getConversation(recipient) {
 
 function getMessageById(message) {
     id = JSON.parse(message).message
-    $.getJSON(`/api/v1/message/${id}/`, function (data) {
-        if (data.sender === currentRecipient ||
-            (data.recipient === currentRecipient && data.sender == currentUser)) {
-            drawMessage(data);
-        }
+    $.getJSON(`/api/v1/message/${currentRecipient}/${id}/`, function (data) {
+        drawMessage(data);
         messageList.animate({scrollTop: messageList.prop('scrollHeight')});
     });
 }
 
 function sendMessage(recipient, body) {
-    $.post('/api/v1/message/', {
+    $.post(`/api/v1/message/${recipient}/`, {
         recipient: recipient,
         body: body
     }).fail(function () {
