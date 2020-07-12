@@ -10,7 +10,7 @@ from rest_framework.authentication import SessionAuthentication
 
 from chat import settings
 from core.serializers import MessageSerializer, UserSerializer
-from core.models import Message
+from core.models import Message, ChatGroup
 
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
@@ -32,19 +32,30 @@ class MessagePagination(PageNumberPagination):
 
 
 class MessageViewSet(ModelViewSet):
-    queryset = Message.objects.all()
     serializer_class = MessageSerializer
     allowed_methods = ('GET', 'POST', 'HEAD', 'OPTIONS')
     authentication_classes = (CsrfExemptSessionAuthentication,)
     pagination_class = MessagePagination
 
-    def get_queryset(self):
+    def get_group(self):
         user = self.request.user
-        contact = self.kwargs.get('contact')
-        return Message.objects.filter(
-            Q(recipient=user, sender__username=contact) |
-            Q(recipient__username=contact, sender=user)
-        )
+        contact_name = self.kwargs.get('contact')
+        try:
+            group = ChatGroup.objects.filter(members=user).filter(members__username=contact_name).get()
+        except ChatGroup.DoesNotExist:
+            contact = get_object_or_404(User, username=contact_name)
+            group = ChatGroup()
+            group.save()
+            group.members.add(user, contact)
+        return group
+
+    def get_queryset(self):
+        group = self.get_group()
+        return group.messages.all()
+
+    def perform_create(self, serializer):
+        group = self.get_group()
+        serializer.save(group=group, sender=self.request.user)
 
 
 class MemberList(generics.ListAPIView):

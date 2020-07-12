@@ -57,7 +57,6 @@ function getMessageById(message) {
 
 function sendMessage(recipient, body) {
     $.post(`/api/v1/message/${recipient}/`, {
-        recipient: recipient,
         body: body
     }).fail(function () {
         alert('Error! Check console!');
@@ -89,7 +88,7 @@ $(document).ready(function () {
 //    let socket = new WebSocket(`ws://127.0.0.1:8000/?session_key=${sessionKey}`);
     var socket = new WebSocket(
         'ws://' + window.location.host +
-        '/ws?session_key=${sessionKey}')
+        '/ws/chat?session_key=${sessionKey}')
 
     chatInput.keypress(function (e) {
         if (e.keyCode == 13)
